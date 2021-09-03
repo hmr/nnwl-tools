@@ -8,6 +8,8 @@ TARGET_SRV="https://www3.nhk.or.jp"
 TARGET_DOC="news/json16/realtime.json"
 TARGET_URL="${TARGET_SRV}/${TARGET_DOC}"
 
+INTERVAL=15
+
 while true
 do
     RT_JSON="$(curl -s -S "${TARGET_URL}")"
@@ -17,7 +19,7 @@ do
 
     if [ "${NUM}" -lt 1 ]; then
         echo "[$(date +'%Y-%m-%d %H:%M:%S')] live streaming not found"
-        sleep 60
+        sleep ${INTERVAL}
         continue
     fi
 
@@ -39,5 +41,5 @@ do
         fi
     done
 
-    sleep 60
+    sleep ${INTERVAL}
 done
