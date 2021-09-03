@@ -67,13 +67,12 @@ LIVE_NUM="${PAGE_URL##*/}"
 LIVE_NUM="${LIVE_NUM%.htm*}"
 decho "LIVE_NUM=${LIVE_NUM}"
 
+OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}"
 # 出力ディレクトリを作成できなかったらエラー
-if ! mkdir "${LIVE_NUM}"; then
-    echo "[Error] Can't make output directory."
+if ! mkdir "${OUT_DIR}"; then
+    echo "[Error] Can't make output directory. [${OUT_DIR}]"
     exit 3
 fi
-# OUT_DIR=$(mktemp -d)
-OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}"
 decho "OUT_DIR=${OUT_DIR}"
 
 # Extract Live page JSON URL
@@ -88,9 +87,11 @@ decho "JSON1_FILE=${JSON1_FILE}"
 
 # Extract Title and Player page URL from Live page JSON
 IFS=$'\n'
+# shellcheck disable=SC2207
 TEMP_JQ=($(jq -r ".title,.stream[].videoMix" "${JSON1_FILE}"))
 # TITLE="${TEMP_JQ[0]//[[:space:]]/_}"
 # TEMP_JQ[0]="a b   c  d"
+# shellcheck disable=SC2001
 TITLE=$(echo "${TEMP_JQ[0]}" | sed -e 's/[[:space:]]\{1,\}/_/g')
 PLAYER_HTML_URL="${URL_SERVER}${TEMP_JQ[1]}"
 decho "TITLE=${TITLE}"
