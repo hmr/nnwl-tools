@@ -1,3 +1,59 @@
+# これはなにか
+
+
+`NHK News Web` では価値のあるライブ放送を行っています。`nnwl-tools` はそれらのライブ放送の監視とダウンロードを行う包括的なツール群です。
+
+## Usage
+
+### monitor_nhk_news_live.bash
+
+このツールは `NHK News Web`のライブ放送通知を定期的に監視します(デフォルトでは15秒)。発見したらダウンロードツールの `get_nnw_hls.bash` を起動します。
+
+```sh
+./monitor_nhk_news_live.bash >> nhk-news-live.log 2>&1 &
+tail -f nhk-news-live.log
+```
+
+#### ToDo
+
+- オプション
+  - 監視周期
+  - 監視対象URL
+  - 起動するプログラム
+
+### get_nnw_hls.bash
+
+This tool tries to download HLS based on given URL.
+
+```sh
+get_nnw_hls.bash <URL>
+```
+
+#### ToDo
+
+- Http client rather than curl
+  - wget
+- Error handling
+
+### monitor_nhk_tv_simultaneous.bash
+
+This tool monitors the `NHK News Web`'s simultaneous broadcasting which is occured in major incidents.
+
+```sh
+./monitor_nhk_tv_simultaneous.bash >> nhk-news-simul.log 2>&1 &
+tail -f nhk-news-simul.log
+```
+
+### get_hls_nhk_simul.bash
+
+This tool downloads `NHK News Web`'s simultaneous broadcasting HLS video.
+
+```sh
+get_hls_nhk_simul.bash <URL>
+```
+
+----------
+
 # What's this
 
 The `NHK News Web` provides valuable(in historic or journalistic meaning) live broadcasts occasionally.
@@ -5,34 +61,37 @@ The `NHK News Web` provides valuable(in historic or journalistic meaning) live b
 
 ## Usage
 
-### monitor_nnw.bash
+### monitor_nhk_news_live.bash
 
-This tool monitors the `NHK News Web`'s live broadcast notification page periodically (default is 60 sec). Once it founds, this tool will call the download tool -- `get_nnw_hls.bash`.
+This tool monitors the `NHK News Web`'s live broadcast notification page periodically (default is 15 sec). Once it founds, this tool will call the download tool -- `get_nnw_hls.bash`.
 
 ```sh
-./watch_nhk_news_live.bash >> watch.log 2>&1 &
+./monitor_nhk_news_live.bash >> nhk-news-live.log 2>&1 &
+tail -f nhk-news-live.log
 ```
-
-#### ToDo
-
-- Chnge its own filename.
-- Option handling
-  - monitor period
-  - monitor url
-  - call-up program
 
 ### get_nnw_hls.bash
 
 This tool tries to download HLS based on given URL.
 
 ```sh
-get_nnw_hls.bash https://live.broadcasting.url/of/nhk
+get_nnw_hls.bash <URL>
 ```
 
-#### ToDo
+### monitor_nhk_tv_simultaneous.bash
 
-- Change its own filename
-- Http client rather than curl
-  - wget
+This tool monitors the `NHK News Web`'s simultaneous broadcasting which is occured in major incidents.
 
+```sh
+./monitor_nhk_tv_simultaneous.bash >> nhk-news-simul.log 2>&1 &
+tail -f nhk-news-simul.log
+```
+
+### get_hls_nhk_simul.bash
+
+This tool downloads `NHK News Web`'s simultaneous broadcasting HLS video.
+
+```sh
+get_hls_nhk_simul.bash <URL>
+```
 
