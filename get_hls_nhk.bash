@@ -54,6 +54,9 @@ else
     # exit 2
 fi
 
+
+DATE_PREFIX="$(date +'%Y%m%d_%H%M%S')"
+
 # Extract from given URL
 URL_SERVER="$(echo "${PAGE_URL%/*}" | cut -d '/' -f 1-3)"
 decho "URL_SERVER=${URL_SERVER}"
@@ -67,38 +70,43 @@ LIVE_NUM="${PAGE_URL##*/}"
 LIVE_NUM="${LIVE_NUM%.htm*}"
 decho "LIVE_NUM=${LIVE_NUM}"
 
-OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}"
-# 出力ディレクトリを作成できなかったらエラー
-if ! mkdir "${OUT_DIR}"; then
-    echo "[Error] Can't make output directory. [${OUT_DIR}]"
-    exit 3
-fi
-decho "OUT_DIR=${OUT_DIR}"
+### JSON1->PLAYER_HTML->PLAYER_JSON->HLS_PLの順で取得・抽出する
 
 # Extract Live page JSON URL
-# JSON1_URL=${URL_PREFIX}/$(echo "${PAGE_URL}" | grep -oP '\w*.html$' | sed -e 's/\.html//g').json
 JSON1_URL="${URL_PREFIX}/${LIVE_NUM}.json"
 decho "JSON1_URL=$JSON1_URL"
 
 # Fetch Live page JSON
-JSON1_FILE="${OUT_DIR}/main.json"
-curl -s -S "${JSON1_URL}" -o "${JSON1_FILE}"
-decho "JSON1_FILE=${JSON1_FILE}"
+JSON1=$(curl -s -S "${JSON1_URL}")
 
 # Extract Title and Player page URL from Live page JSON
 IFS=$'\n'
 # shellcheck disable=SC2207
-TEMP_JQ=($(jq -r ".title,.stream[].videoMix" "${JSON1_FILE}"))
-# TITLE="${TEMP_JQ[0]//[[:space:]]/_}"
-# TEMP_JQ[0]="a b   c  d"
+TMP_JQ_ARR=($(jq -r ".title,.stream[].videoMix" <<<"${JSON1}"))
 # shellcheck disable=SC2001
-TITLE=$(echo "${TEMP_JQ[0]}" | sed -e 's/[[:space:]]\{1,\}/_/g')
-PLAYER_HTML_URL="${URL_SERVER}${TEMP_JQ[1]}"
+TITLE=$(echo "${TMP_JQ_ARR[0]}" | sed -e 's/[[:space:]]\{1,\}/_/g')
+PLAYER_HTML_URL="${URL_SERVER}${TMP_JQ_ARR[1]}"
 decho "TITLE=${TITLE}"
 decho "PLAYER_HTML_URL=${PLAYER_HTML_URL}"
 
+# 出力ディレクトリ形式は「rt0001234-放送タイトル」
+OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}-${TITLE}"
+
+# 出力ディレクトリを作成できなかったら通し番号を後置する
+CT=0
+while ! mkdir "${OUT_DIR}"
+do
+    echo "[Error] Can't make output directory. [${OUT_DIR}]"
+    ((CT++))
+    OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}_${CT}-${TITLE}"
+done
+decho "OUT_DIR=${OUT_DIR}"
+
+JSON1_FILE="${OUT_DIR}/main.json"
+echo "${JSON1}" > "${JSON1_FILE}" # いちおう保存
+decho "JSON1_FILE=${JSON1_FILE}"
+
 # Fetch Player page HTML
-# PLAYER_HTML_FILE="${OUT_DIR}/player_rt0006189_01.html"
 PLAYER_HTML_FILE="${OUT_DIR}/player.html"
 curl -s -S "${PLAYER_HTML_URL}" -o "${PLAYER_HTML_FILE}"
 decho "PLAYER_HTML_FILE=${PLAYER_HTML_FILE}"
@@ -108,7 +116,6 @@ PLAYER_JSON_URL="${URL_PREFIX_PLAYER}/$(grep -Po "player_.*\.json" "${PLAYER_HTM
 decho "PLAYER_JSON_URL=${PLAYER_JSON_URL}"
 
 # Fetch Player page JSON
-# PLAYER_JSON_FILE="${OUT_DIR}/player_rt0006189_01.json"
 PLAYER_JSON_FILE="${OUT_DIR}/player.json"
 curl -s -S "${PLAYER_JSON_URL}" -o "${PLAYER_JSON_FILE}"
 decho "PLAYER_JSON_FILE=${PLAYER_JSON_FILE}"
@@ -129,7 +136,7 @@ STREAM_PL_URL="${STREAM_SERVER}$(grep 'master-512k.m3u8' "${HLS_PL_FILE}")"
 decho "STREAM_PL_URL=${STREAM_PL_URL}"
 
 # Output file name
-FILE_PREFIX="$(date +'%Y%m%d_%H%M%S')-nhk-${LIVE_NUM}-${TITLE}"
+FILE_PREFIX="${DATE_PREFIX}-nhk-${LIVE_NUM}-${TITLE}"
 OUT_FILE="${FILE_PREFIX}.mp4"
 LOG_FILE="${FILE_PREFIX}.log"
 decho "OUT_FILE=${OUT_FILE}"
