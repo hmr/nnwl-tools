@@ -94,7 +94,7 @@ OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}-${TITLE}"
 
 # 出力ディレクトリを作成できなかったら通し番号を後置する
 CT=0
-while ! mkdir "${OUT_DIR}"
+while ! mkdir "${OUT_DIR}" >& /dev/null
 do
     echo "[Error] Can't make output directory. [${OUT_DIR}]"
     ((CT++))
