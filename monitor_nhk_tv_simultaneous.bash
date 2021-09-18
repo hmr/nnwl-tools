@@ -14,27 +14,33 @@ INTERVAL=60
 
 while true
 do
+    # サイマル放送情報のJSONを取得
     RT_JSON="$(curl -s -S "${TARGET_URL}")"
-    # RT_JSON="$(cat realtime.json)"
 
+    # JSONからサイマル放送のフラグ、タイトル、リンクを取得
     IFS=$'\n'
     ARR=($(jq -r '.viewFlg, .title, .link' <<< "${RT_JSON}"))
     FLG=${ARR[0]}
 
+    # サイマル放送が実施されているか判定
     if [ "${FLG}" != "true" ]; then
+        # 実施されていないので待機
         echo "[$(date +'%Y-%m-%d %H:%M:%S')] simultaneous bradcasting not found"
         sleep ${INTERVAL}
         continue
     fi
 
-
+    # サイマル放送が実施されている
     LIVE_TITLE="${ARR[1]}"
     LIVE_URL="${TARGET_SRV}${ARR[2]}"
 
+    # すでに録画を開始しているか判定
     if ! pgrep -f "${LIVE_URL}" >& /dev/null; then
-        echo "[$(date +'%Y-%m-%d %H:%M:%S')] Live straming found: \"${LIVE_TITLE}\" at ${LIVE_URL}"
+        # 録画プログラムを呼び出す
+        echo "[$(date +'%Y-%m-%d %H:%M:%S')] simultaneous broadcasting found: \"${LIVE_TITLE}\" at ${LIVE_URL}"
         ./get_hls_nhk_simul.bash "${LIVE_URL}" &
     else
+        # 録画中であることを通知
         echo "[$(date +'%Y-%m-%d %H:%M:%S')] \"${LIVE_TITLE}\" is recording now"
     fi
 

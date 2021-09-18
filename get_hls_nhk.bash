@@ -6,12 +6,42 @@
 
 # Required softwares: GNU sed, GNU grep, cURL, jq
 
+# print date for log
+function logdate() {
+    date +'%Y-%m-%d %H:%M:%S'
+}
+
+# print log message
+function printl() {
+    local LEVEL
+    if [[ "$#" -lt "2" ]]; then
+        LEVEL="info"
+    else
+        LEVEL="$1"
+        shift
+    fi
+
+    printf '[%s][%s] %s\n' "$(logdate)" "${LEVEL}" "$*"
+}
+
+# print a debug message
 function decho() {
     if [ "${DEBUG}" -ne 0 ]; then
-        printf '[debug] %s\n' "$1"
+        printl "debug" "$@"
     fi
 }
 
+# print an error message
+function eecho() {
+    printl "error" "$@"
+}
+
+# print an informational message
+function iecho() {
+    printl "info" "$@"
+}
+
+# Workaround for zsh
 if [ -n "${ZSH_VERSION}" ]; then
     setopt -o KSH_ARRAYS
 fi
@@ -25,39 +55,39 @@ fi
 
 set -eu
 
-DEBUG=1
+DEBUG=1     # デバッグログを出力しない場合は0にしてください
+
+# 出力先ディレクトリ
 OUT_DIR_PREFIX="out"
 
-# URL_SERVER="https://www3.nhk.or.jp"
-# URL_PREFIX="${URL_SERVER}/news/realtime"
-# URL_PREFIX_PLAYER="${URL_PREFIX}/movie"
-
 PAGE_URL=$1
-echo "PAGE_URL=${PAGE_URL}"
+iecho "PAGE_URL=${PAGE_URL}"
 
-# Check URL
-echo -n "Checking URL..."
+# Check given URL
+iecho "Checking URL..."
 if ! echo "${PAGE_URL}" | grep -q "nhk"; then
-    echo "[Error] Looks not NHK News Live URL"
+    # NHKのURKではなさそう
+    echo "[Error] Looks none-nhk url"
     exit 2
 fi
 
 if ! echo "${PAGE_URL}" | grep -qP "\.html$"; then
-    echo "[Error] Looks not NHK News Live URL"
+    # 正しいURLではなさそう
+    echo "[Error] Looks not valid url"
     exit 2
 fi
 
+# URLがアクセス可能か確認
 if curl --output /dev/null --silent --head --fail "${PAGE_URL}"; then
-    echo "looks good!"
+    decho "looks good!"
 else
     echo "[Error] URL doesn't exist!"
-    # exit 2
+    exit 2
 fi
-
 
 DATE_PREFIX="$(date +'%Y%m%d_%H%M%S')"
 
-# Extract from given URL
+# 引数のURLから抽出
 URL_SERVER="$(echo "${PAGE_URL%/*}" | cut -d '/' -f 1-3)"
 decho "URL_SERVER=${URL_SERVER}"
 URL_PREFIX="${PAGE_URL%/*}"
@@ -92,7 +122,7 @@ decho "PLAYER_HTML_URL=${PLAYER_HTML_URL}"
 # 出力ディレクトリ形式は「rt0001234-放送タイトル」
 OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}-${TITLE}"
 
-# 出力ディレクトリを作成できなかったら通し番号を後置する
+# 出力ディレクトリを作成できなかったら通し番号を付加する
 CT=0
 while ! mkdir "${OUT_DIR}" >& /dev/null
 do
@@ -103,7 +133,7 @@ done
 decho "OUT_DIR=${OUT_DIR}"
 
 JSON1_FILE="${OUT_DIR}/main.json"
-echo "${JSON1}" > "${JSON1_FILE}" # いちおう保存
+[[ "${DEBUG}" -ne 0 ]] && echo "${JSON1}" > "${JSON1_FILE}" # デバッグ設定時保存
 decho "JSON1_FILE=${JSON1_FILE}"
 
 # Fetch Player page HTML
