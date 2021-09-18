@@ -6,17 +6,47 @@
 
 # Required softwares: GNU sed, GNU grep, cURL, jq
 
+# ログ用に日付を出力
+function logdate() {
+    date +'%Y-%m-%d %H:%M:%S'
+}
+
+# ログメッセージを出力
+function printl() {
+    local LEVEL
+    if [[ "$#" -lt "2" ]]; then
+        LEVEL="info"
+    else
+        LEVEL="$1"
+        shift
+    fi
+
+    printf '[%s][%s] %s\n' "$(logdate)" "${LEVEL}" "$*"
+}
+
+# デバッグメッセージを出力
 function decho() {
     if [ "${DEBUG}" -ne 0 ]; then
-        printf '[debug] %s\n' "$1"
+        printl "debug" "$@"
     fi
 }
 
+# エラーメッセージを出力
+function eecho() {
+    printl "error" "$@"
+}
+
+# print an informational message
+function iecho() {
+    printl "info" "$@"
+}
+
+# Zsh用のワークアラウンド
 if [ -n "${ZSH_VERSION}" ]; then
     setopt -o KSH_ARRAYS
 fi
 
-# Check argument(s)
+# 引数チェック
 if [ $# -lt 1 ]; then
     echo "Too few arguments."
     echo "Usage: $0 <URL>"
@@ -25,28 +55,30 @@ fi
 
 set -eu
 
-DEBUG=1
+DEBUG=1 # デバッグログを出力しない場合は0にしてください
+
+# 出力先ディレクトリ
 OUT_DIR_PREFIX="out"
 
 PAGE_URL=$1
-echo "PAGE_URL=${PAGE_URL}"
+iecho "PAGE_URL=${PAGE_URL}"
 
 # Check URL
 echo -n "Checking URL..."
 if ! echo "${PAGE_URL}" | grep -q "nhk"; then
-    echo "[Error] Looks not NHK News Live URL"
+    eecho "Looks not NHK News Live URL"
     exit 2
 fi
 
 if ! echo "${PAGE_URL}" | grep -qP "\.html$"; then
-    echo "[Error] Looks not NHK News Live URL"
+    eecho "Looks not NHK News Live URL"
     exit 2
 fi
 
 if curl -output /dev/null --silent --head --fail "${PAGE_URL}"; then
-    echo "looks good!"
+    iecho "looks good!"
 else
-    echo "[Error] URL doesn't exist!"
+    eecho "URL doesn't exist!"
     exit 2
 fi
 
@@ -57,18 +89,6 @@ URL_PREFIX="${PAGE_URL%/*}"
 decho "URL_PREFIX=${URL_PREFIX}"
 URL_PREFIX_PLAYER="${URL_PREFIX}/movie"
 decho "URL_PREFIX_PLAYER=${URL_PREFIX_PLAYER}"
-
-# # 生中継番号を作成する
-# LIVE_NUM="tv$(date +'%Y%m%d-%H%M%S')"
-# decho "LIVE_NUM=${LIVE_NUM}"
-#
-# OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}"
-# # 出力ディレクトリを作成できなかったらエラー
-# if ! mkdir "${OUT_DIR}"; then
-#     echo "[Error] Can't make output directory. [${OUT_DIR}]"
-#     exit 3
-# fi
-# decho "OUT_DIR=${OUT_DIR}"
 
 # Player JSON の URL
 PLAYER_JSON_URL="${URL_PREFIX_PLAYER}/player_live.json"
@@ -84,7 +104,7 @@ decho "LIVE_NUM=${LIVE_NUM}"
 # 出力ディレクトリを作成できなかったらエラー
 OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}"
 if ! mkdir "${OUT_DIR}"; then
-    echo "[Error] Can't make output directory. [${OUT_DIR}]"
+    eecho "Can't make output directory. [${OUT_DIR}]"
     exit 3
 fi
 decho "OUT_DIR=${OUT_DIR}"

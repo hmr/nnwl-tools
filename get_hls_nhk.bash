@@ -6,12 +6,12 @@
 
 # Required softwares: GNU sed, GNU grep, cURL, jq
 
-# print date for log
+# ログ用に日付を出力
 function logdate() {
     date +'%Y-%m-%d %H:%M:%S'
 }
 
-# print log message
+# ログメッセージを出力
 function printl() {
     local LEVEL
     if [[ "$#" -lt "2" ]]; then
@@ -24,14 +24,14 @@ function printl() {
     printf '[%s][%s] %s\n' "$(logdate)" "${LEVEL}" "$*"
 }
 
-# print a debug message
+# デバッグメッセージを出力
 function decho() {
     if [ "${DEBUG}" -ne 0 ]; then
         printl "debug" "$@"
     fi
 }
 
-# print an error message
+# エラーメッセージを出力
 function eecho() {
     printl "error" "$@"
 }
@@ -41,12 +41,12 @@ function iecho() {
     printl "info" "$@"
 }
 
-# Workaround for zsh
+# Zsh用のワークアラウンド
 if [ -n "${ZSH_VERSION}" ]; then
     setopt -o KSH_ARRAYS
 fi
 
-# Check argument(s)
+# 引数チェック
 if [ $# -lt 1 ]; then
     echo "Too few arguments."
     echo "Usage: $0 <URL>"
@@ -55,7 +55,7 @@ fi
 
 set -eu
 
-DEBUG=1     # デバッグログを出力しない場合は0にしてください
+DEBUG=1 # デバッグログを出力しない場合は0にしてください
 
 # 出力先ディレクトリ
 OUT_DIR_PREFIX="out"
@@ -67,21 +67,21 @@ iecho "PAGE_URL=${PAGE_URL}"
 iecho "Checking URL..."
 if ! echo "${PAGE_URL}" | grep -q "nhk"; then
     # NHKのURKではなさそう
-    echo "[Error] Looks none-nhk url"
+    eecho "Looks none-nhk url"
     exit 2
 fi
 
 if ! echo "${PAGE_URL}" | grep -qP "\.html$"; then
     # 正しいURLではなさそう
-    echo "[Error] Looks not valid url"
+    eecho "Looks not valid url"
     exit 2
 fi
 
 # URLがアクセス可能か確認
 if curl --output /dev/null --silent --head --fail "${PAGE_URL}"; then
-    decho "looks good!"
+    iecho "looks good!"
 else
-    echo "[Error] URL doesn't exist!"
+    eecho "URL doesn't exist!"
     exit 2
 fi
 
@@ -183,7 +183,3 @@ ffmpeg -loglevel level+warning \
     "${OUT_DIR}/${OUT_FILE}" \
     >& "${OUT_DIR}/${LOG_FILE}"
 
-# Delete temporary directory
-# if [ -n "${OUT_DIR}" ]; then
-#     rm -rf "${OUT_DIR}"
-# fi
