@@ -115,9 +115,8 @@ STREAM_PL_URL=$(echo "$STREAM_PL_URL" | sed -z -e 's/\r\n//g' -e 's/\r//g' -e 's
 decho "STREAM_PL_URL=${STREAM_PL_URL}"
 
 # 出力ファイル名
-TITLE="$(jq -r '.va.adobe.vodContentsID.VInfo1' <<<"${PLAYER_JSON_FILE}")" # "ニュース同時提供"
-# FILE_PREFIX="$(date +'%Y%m%d_%H%M%S')-nhk-${LIVE_NUM}-${TITLE}"
-FILE_PREFIX="${LIVE_NUM}-${TITLE}" # 'tv20210531_102450-ニュース同時提供'
+TITLE="$(jq -r '.va.adobe.vodContentsID.VInfo1' <<<"${PLAYER_JSON_FILE}")" # "ニュース同時提供"で決め打ち?
+FILE_PREFIX="${LIVE_NUM}-${TITLE}" # 'tv20210101_234512-ニュース同時提供'
 OUT_FILE="${FILE_PREFIX}.mp4"
 LOG_FILE="${FILE_PREFIX}.log"
 decho "OUT_FILE=${OUT_FILE}"
