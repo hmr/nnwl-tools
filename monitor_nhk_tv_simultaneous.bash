@@ -10,7 +10,7 @@ TARGET_SRV="https://www3.nhk.or.jp"
 TARGET_DOC="news/json16/tvnews.json"
 TARGET_URL="${TARGET_SRV}/${TARGET_DOC}"
 
-INTERVAL=15
+INTERVAL=60
 
 while true
 do
