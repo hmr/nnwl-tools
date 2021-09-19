@@ -6,14 +6,15 @@
 #
 # Requirements: cURL. jq. pgrep
 
+# shellcheck source=./common_func.bash
+. ./common_func.bash
+
 TARGET_SRV="https://www3.nhk.or.jp"
 TARGET_DOC="news/json16/tvnews.json"
 TARGET_URL="${TARGET_SRV}/${TARGET_DOC}"
 
-INTERVAL=60
-
 # サイマル放送情報のJSONを取得
-RT_JSON="$(curl -s -S "${TARGET_URL}")"
+RT_JSON="$("${PROG_CURL_BIN}" -s -S "${TARGET_URL}")"
 
 # JSONからサイマル放送のフラグ、タイトル、リンクを取得
 IFS=$'\n'
@@ -23,8 +24,7 @@ FLG=${ARR[0]}
 # サイマル放送が実施されているか判定
 if [ "${FLG}" != "true" ]; then
     # 実施されていないので待機
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] simultaneous bradcasting not found"
-    sleep ${INTERVAL}
+    iecho "simultaneous bradcasting not found"
     exit
 fi
 
@@ -33,13 +33,12 @@ LIVE_TITLE="${ARR[1]}"
 LIVE_URL="${TARGET_SRV}${ARR[2]}"
 
 # すでに録画を開始しているか判定
-if ! pgrep -f "${LIVE_URL}" >& /dev/null; then
+if ! "${PROG_PGREP_BIN}" -f "${LIVE_URL}" >& /dev/null; then
     # 録画プログラムを呼び出す
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] simultaneous broadcasting found: \"${LIVE_TITLE}\" at ${LIVE_URL}"
-    ./get_hls_nhk_simul.bash "${LIVE_URL}" &
+    iecho " simultaneous broadcasting \"${LIVE_TITLE}\" found at ${LIVE_URL}"
+    "${PROG_GET_NHK_TV_SIMUL_HLS}" "${LIVE_URL}" &
 else
     # 録画中であることを通知
-    echo "[$(date +'%Y-%m-%d %H:%M:%S')] \"${LIVE_TITLE}\" is recording now"
+    iecho "simultaneous broadcasting \"${LIVE_TITLE}\" is now being recorded"
 fi
 
-sleep ${INTERVAL}

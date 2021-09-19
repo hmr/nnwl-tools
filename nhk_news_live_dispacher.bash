@@ -11,8 +11,8 @@ INTERVAL=15
 
 while true
 do
-    if ! pgrep -f "${PROG_CHECK_NNLIVE}"; then
-        . "${PROG_CHECK_NNLIVE}" &
+    if ! "${PROG_PGREP_BIN}" -f "${PROG_CHECK_NHK_NEWS_LIVE}"; then
+        . "${PROG_CHECK_NHK_NEWS_LIVE}" &
     fi
     sleep ${INTERVAL}
 done

@@ -41,7 +41,7 @@ if ! echo "${PAGE_URL}" | grep -qP "\.html$"; then
 fi
 
 # URLがアクセス可能か確認
-if curl --output /dev/null --silent --head --fail "${PAGE_URL}"; then
+if "${PROG_CURL_BIN}" --output /dev/null --silent --head --fail "${PAGE_URL}"; then
     iecho "looks good!"
 else
     eecho "URL doesn't exist!"
@@ -70,7 +70,7 @@ JSON1_URL="${URL_PREFIX}/${LIVE_NUM}.json"
 decho "JSON1_URL=$JSON1_URL"
 
 # Fetch Live page JSON
-JSON1=$(curl -s -S "${JSON1_URL}")
+JSON1=$("${PROG_CURL_BIN}" -s -S "${JSON1_URL}")
 
 # Extract Title and Player page URL from Live page JSON
 IFS=$'\n'
@@ -101,7 +101,7 @@ decho "JSON1_FILE=${JSON1_FILE}"
 
 # Fetch Player page HTML
 PLAYER_HTML_FILE="${OUT_DIR}/player.html"
-curl -s -S "${PLAYER_HTML_URL}" -o "${PLAYER_HTML_FILE}"
+"${PROG_CURL_BIN}" -s -S "${PLAYER_HTML_URL}" -o "${PLAYER_HTML_FILE}"
 decho "PLAYER_HTML_FILE=${PLAYER_HTML_FILE}"
 
 # Extract Player page JSON URL from Player page HTML
@@ -110,7 +110,7 @@ decho "PLAYER_JSON_URL=${PLAYER_JSON_URL}"
 
 # Fetch Player page JSON
 PLAYER_JSON_FILE="${OUT_DIR}/player.json"
-curl -s -S "${PLAYER_JSON_URL}" -o "${PLAYER_JSON_FILE}"
+"${PROG_CURL_BIN}" -s -S "${PLAYER_JSON_URL}" -o "${PLAYER_JSON_FILE}"
 decho "PLAYER_JSON_FILE=${PLAYER_JSON_FILE}"
 
 # Extract HLS Playlist URL from Player page JSON
@@ -119,7 +119,7 @@ decho "HLS_PL_URL=${HLS_PL_URL}"
 
 # Fetch HLS Playlist
 HLS_PL_FILE="${OUT_DIR}/playlist.m3u8"
-curl -s -S "${HLS_PL_URL}" -o "${HLS_PL_FILE}"
+"${PROG_CURL_BIN}" -s -S "${HLS_PL_URL}" -o "${HLS_PL_FILE}"
 decho "HLS_PL_FILE=${HLS_PL_FILE}"
 
 # Extract Stream playlist URL from HLS Playlist
@@ -137,7 +137,7 @@ decho "LOG_FILE=${LOG_FILE}"
 
 # Download the stream
 echo
-ffmpeg -loglevel level+warning \
+"${PROG_FFMPEG_BIN}" -loglevel level+warning \
     -i "${STREAM_PL_URL}" \
     -c copy \
     -bsf:a aac_adtstoasc \

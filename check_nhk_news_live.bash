@@ -12,7 +12,7 @@ TARGET_DOC="news/json16/realtime.json"
 TARGET_URL="${TARGET_SRV}/${TARGET_DOC}"
 
 # ライブ放送情報のJSONを取得
-RT_JSON="$(curl -s -S "${TARGET_URL}")"
+RT_JSON="$("${PROG_CURL_BIN}" -s -S "${TARGET_URL}")"
 # RT_JSON="$(cat realtime.json)" # for debug
 
 # 実施されているライブ放送の数を取得
@@ -37,10 +37,10 @@ do
     LIVE_NUM="$(basename "${ARR[1]}" | sed -e 's/\.html//')"
 
     # すでに録画を開始しているか判定
-    if ! pgrep -f "${LIVE_URL}" >& /dev/null; then
+    if ! "${PROG_PGREP_BIN}" -f "${LIVE_URL}" >& /dev/null; then
         # 録画プログラムを呼び出す
         iecho "live straming \"[${LIVE_NUM}] ${LIVE_TITLE}\" found at ${LIVE_URL}"
-        ./get_hls_nhk.bash "${LIVE_URL}" &
+        ${PROG_GET_NHK_NEWS_LIVE_HLS} "${LIVE_URL}" &
     else
         # 録画中であることを通知
         iecho "live streaming \"${LIVE_TITLE}\" is now being recorded"

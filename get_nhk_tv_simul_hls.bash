@@ -7,44 +7,8 @@
 # Required softwares: GNU sed, GNU grep, cURL, jq
 
 # ログ用に日付を出力
-function logdate() {
-    date +'%Y-%m-%d %H:%M:%S'
-}
-
-# ログメッセージを出力
-function printl() {
-    local LEVEL
-    if [[ "$#" -lt "2" ]]; then
-        LEVEL="info"
-    else
-        LEVEL="$1"
-        shift
-    fi
-
-    printf '[%s][%s] %s\n' "$(logdate)" "${LEVEL}" "$*"
-}
-
-# デバッグメッセージを出力
-function decho() {
-    if [ "${DEBUG}" -ne 0 ]; then
-        printl "debug" "$@"
-    fi
-}
-
-# エラーメッセージを出力
-function eecho() {
-    printl "error" "$@"
-}
-
-# print an informational message
-function iecho() {
-    printl "info" "$@"
-}
-
-# Zsh用のワークアラウンド
-if [ -n "${ZSH_VERSION}" ]; then
-    setopt -o KSH_ARRAYS
-fi
+# shellcheck source=./common_func.bash
+. ./common_func.bash
 
 # 引数チェック
 if [ $# -lt 1 ]; then
@@ -75,7 +39,7 @@ if ! echo "${PAGE_URL}" | grep -qP "\.html$"; then
     exit 2
 fi
 
-if curl -output /dev/null --silent --head --fail "${PAGE_URL}"; then
+if "${PROG_CURL_BIN}" -output /dev/null --silent --head --fail "${PAGE_URL}"; then
     iecho "looks good!"
 else
     eecho "URL doesn't exist!"
@@ -95,9 +59,10 @@ PLAYER_JSON_URL="${URL_PREFIX_PLAYER}/player_live.json"
 decho "PLAYER_JSON_URL=${PLAYER_JSON_URL}"
 
 # Player JSON を取得
-PLAYER_JSON_FILE=$(curl -s -S "${PLAYER_JSON_URL}")
+PLAYER_JSON_FILE=$("${PROG_CURL_BIN}" -s -S "${PLAYER_JSON_URL}")
 
-# Player JSON から日付情報を抜き出し、日本時間に変換後、ライブ番号として使用 'tv20210531_102450'
+# Player JSON から日付情報を抜き出してライブ番号として使用 'tv20210531_102450'
+# なぜかUTCなのでJSTに変換している
 LIVE_NUM="tv$(date -d "$(jq -r '.va.adobe.vodContentsID.VInfo3' <<<"${PLAYER_JSON_FILE}")" +'%Y%m%d_%H%M%S')"
 decho "LIVE_NUM=${LIVE_NUM}"
 
@@ -120,7 +85,7 @@ HLS_PL_URL="$(jq -r ".mediaResource.url" <<<"${PLAYER_JSON_FILE}")"
 decho "HLS_PL_URL=${HLS_PL_URL}"
 
 # HLS プレイリストを取得
-HLS_PL_FILE=$(curl -s -S "${HLS_PL_URL}")
+HLS_PL_FILE=$("${PROG_CURL_BIN}" -s -S "${HLS_PL_URL}")
 if [ "${DEBUG}" -ne 0 ]; then
     # HLS プレイリストを保存
     echo "${HLS_PL_FILE}" > "${OUT_DIR}/playlist.m3u8"
@@ -135,8 +100,8 @@ STREAM_PL_URL=$(echo "$STREAM_PL_URL" | sed -z -e 's/\r\n//g' -e 's/\r//g' -e 's
 decho "STREAM_PL_URL=${STREAM_PL_URL}"
 
 # 出力ファイル名
-TITLE="$(jq -r '.va.adobe.vodContentsID.VInfo1' <<<"${PLAYER_JSON_FILE}")" # "ニュース同時提供"で決め打ち?
-FILE_PREFIX="${LIVE_NUM}-${TITLE}" # 'tv20210101_234512-ニュース同時提供'
+TITLE="$(jq -r '.va.adobe.vodContentsID.VInfo1' <<<"${PLAYER_JSON_FILE}")"
+FILE_PREFIX="${LIVE_NUM}-${TITLE}" # e.g. 'tv20210101_234512-ニュース同時提供'
 OUT_FILE="${FILE_PREFIX}.mp4"
 LOG_FILE="${FILE_PREFIX}.log"
 decho "OUT_FILE=${OUT_FILE}"

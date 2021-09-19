@@ -3,11 +3,15 @@
 
 # ORIGIN: 2021-09-19 by hmr
 
-PROG_CHECK_NNLIVE="./check_nhk_news_live.bash"
+PROG_CHECK_NHK_NEWS_LIVE="./check_nhk_news_live.bash"
 PROG_CHECK_NHK_TV_SIMUL="./check_nhk_tv_simul.bash"
 
-PROG_GET_NNLIVE_HLS="./get_nhk_news_live_hls.bash"
-PROG_GET_NHK_SIMUL_HLS="./get_nhk_tv_simul_hls.bash"
+PROG_GET_NHK_NEWS_LIVE_HLS="./get_nhk_news_live_hls.bash"
+PROG_GET_NHK_TV_SIMUL_HLS="./get_nhk_tv_simul_hls.bash"
+
+PROG_FFMPEG_BIN="ffmpeg"
+PROG_PGREP_BIN="pgrep"
+PROG_CURL_BIN="curl"
 
 # ログ用に日付を出力
 function logdate() {
