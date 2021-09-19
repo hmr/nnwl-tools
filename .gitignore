@@ -1,5 +1,6 @@
 dev
 out
+log
 *.log
 *.[1-9].xz
 *.[1-9][0-9].xz
