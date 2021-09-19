@@ -6,45 +6,8 @@
 
 # Required softwares: GNU sed, GNU grep, cURL, jq
 
-# ログ用に日付を出力
-function logdate() {
-    date +'%Y-%m-%d %H:%M:%S'
-}
-
-# ログメッセージを出力
-function printl() {
-    local LEVEL
-    if [[ "$#" -lt "2" ]]; then
-        LEVEL="info"
-    else
-        LEVEL="$1"
-        shift
-    fi
-
-    printf '[%s][%s] %s\n' "$(logdate)" "${LEVEL}" "$*"
-}
-
-# デバッグメッセージを出力
-function decho() {
-    if [ "${DEBUG}" -ne 0 ]; then
-        printl "debug" "$@"
-    fi
-}
-
-# エラーメッセージを出力
-function eecho() {
-    printl "error" "$@"
-}
-
-# print an informational message
-function iecho() {
-    printl "info" "$@"
-}
-
-# Zsh用のワークアラウンド
-if [ -n "${ZSH_VERSION}" ]; then
-    setopt -o KSH_ARRAYS
-fi
+# shellcheck source=./common_func.bash
+. ./common_func.bash
 
 # 引数チェック
 if [ $# -lt 1 ]; then
