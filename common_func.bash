@@ -28,7 +28,7 @@ function printl() {
         shift
     fi
 
-    printf '[%s][%s] %s\n' "$(logdate)" "${LEVEL}" "$*"
+    printf '[%s] [%s] %s\n' "$(logdate)" "${LEVEL}" "$*"
 }
 
 # デバッグメッセージを出力
