@@ -13,7 +13,11 @@ TARGET_URL="${TARGET_SRV}/${TARGET_DOC}"
 
 # ライブ放送情報のJSONを取得
 RT_JSON="$("${PROG_CURL_BIN}" -s -S "${TARGET_URL}")"
-# RT_JSON="$(cat realtime.json)" # for debug
+# RT_JSON="$(cat realtime.json)" # for development
+if [[ -z "${RT_JSON}" ]]; then
+	eecho "can't get document from ${TARGET_URL}"
+	exit 1
+fi
 
 # 実施されているライブ放送の数を取得
 NUM=$(jq -rc '.item | length' <<< "${RT_JSON}")
