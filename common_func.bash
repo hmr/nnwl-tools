@@ -11,6 +11,7 @@ PROG_GET_NHK_TV_SIMUL_HLS="./get_nhk_tv_simul_hls.bash"
 
 PROG_FFMPEG_BIN="ffmpeg"
 PROG_PGREP_BIN="pgrep"
+PROG_PKILL_BIN="pkill"
 PROG_CURL_BIN="curl"
 
 # ログ用に日付を出力

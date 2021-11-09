@@ -40,13 +40,25 @@ do
     LIVE_URL="${TARGET_SRV}${ARR[1]}"
     LIVE_NUM="$(basename "${ARR[1]}" | sed -e 's/\.html//')"
 
-    # すでに録画を開始しているか判定
-    if ! "${PROG_PGREP_BIN}" -f "${LIVE_URL}" >& /dev/null; then
-        # 録画プログラムを呼び出す
-        iecho "live straming \"[${LIVE_NUM}] ${LIVE_TITLE}\" found at ${LIVE_URL}"
-        ${PROG_GET_NHK_NEWS_LIVE_HLS} "${LIVE_URL}" &
+    # 録画スキップ設定の有無を確認
+    if [ -e "${LIVE_NUM}.norec" ]; then
+		iecho "skipping live straming \"[${LIVE_NUM}] ${LIVE_TITLE}\" due to setting"
+		"${PROG_PKILL_BIN}" -f "${LIVE_NUM}"
     else
-        # 録画中であることを通知
-        iecho "live streaming \"${LIVE_TITLE}\" is now being recorded"
+	    # すでに録画を開始しているか判定
+	    if ! "${PROG_PGREP_BIN}" -f "${LIVE_URL}" >& /dev/null; then
+		    # 録画プログラムを呼び出す
+		    iecho "live straming \"[${LIVE_NUM}] ${LIVE_TITLE}\" found at ${LIVE_URL}"
+		    if [ -e "${LIVE_NUM}.norec" ]; then
+			    iecho "but it will be skipped due to setting."
+		    else
+			    ${PROG_GET_NHK_NEWS_LIVE_HLS} "${LIVE_URL}" &
+		    fi
+	    else
+		    # 録画中であることを通知
+		    iecho "live streaming \"${LIVE_TITLE}\" is now being recorded"
+	    fi
     fi
 done
+
+# vim: ft=sh:ts=4:sw=4:noet
