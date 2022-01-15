@@ -65,13 +65,21 @@ PLAYER_JSON_FILE=$("${PROG_CURL_BIN}" -s -S "${PLAYER_JSON_URL}")
 # なぜかUTCなのでJSTに変換している
 LIVE_NUM="tv$(date -d "$(jq -r '.va.adobe.vodContentsID.VInfo3' <<<"${PLAYER_JSON_FILE}")" +'%Y%m%d_%H%M%S')"
 decho "LIVE_NUM=${LIVE_NUM}"
+TITLE="$(jq -r '.va.adobe.vodContentsID.VInfo1' <<<"${PLAYER_JSON_FILE}")"
 
-# 出力ディレクトリを作成できなかったらエラー
-OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}"
-if ! mkdir "${OUT_DIR}"; then
+# 出力ディレクトリを作成できなかったら通し番号を付加する
+OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}-${TITLE:="no_title"}"
+CT=0
+while ! mkdir "${OUT_DIR}" >& /dev/null
+do
+    if [ "${CT}" -gt 99 ]; then
+        eecho "Max retry count exceeded."
+	exit 3
+    fi
     eecho "Can't make output directory. [${OUT_DIR}]"
-    exit 3
-fi
+    ((CT++))
+    OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}_${CT}-${TITLE}"
+done
 decho "OUT_DIR=${OUT_DIR}"
 
 if [ "${DEBUG}" -ne 0 ]; then

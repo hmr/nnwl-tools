@@ -89,7 +89,11 @@ OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}-${TITLE}"
 CT=0
 while ! mkdir "${OUT_DIR}" >& /dev/null
 do
-    echo "[Error] Can't make output directory. [${OUT_DIR}]"
+    if [ "${CT}" -gt 99 ]; then
+        eecho "Max retry count exceeded."
+	exit 3
+    fi
+    eecho "Can't make output directory. [${OUT_DIR}]"
     ((CT++))
     OUT_DIR="${OUT_DIR_PREFIX}/${LIVE_NUM}_${CT}-${TITLE}"
 done
